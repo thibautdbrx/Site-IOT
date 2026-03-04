@@ -126,7 +126,23 @@
             </div>
           </div>
 
-          <div class="historique">
+          <div style="text-align: center; margin-bottom: 10px">
+            <button
+              @click="showHistorique = !showHistorique"
+              style="
+                padding: 8px 15px;
+                border-radius: 6px;
+                background: #3b82f6;
+                color: white;
+                border: none;
+                cursor: pointer;
+              "
+            >
+              {{ showHistorique ? 'Cacher l\'historique' : 'Afficher
+              l\'historique' }}
+            </button>
+          </div>
+          <div class="historique" v-if="showHistorique">
             <div
               v-for="(msg, index) in historique"
               :key="index"
@@ -177,6 +193,7 @@
             derniereHeure: "--:--:--",
             historique: [],
             dernierOrdre: null, // 0 = allumé, 1 = éteint
+            showHistorique: true,
           };
         },
         methods: {
@@ -203,7 +220,7 @@
             // Historique propre
             this.historique.unshift({
               date: this.derniereHeure,
-              val: `X:${parsed.x} Y:${parsed.y} Z:${parsed.z} Temp:${parsed.temp}°C`,
+              val: `X:${parsed.x}; Y:${parsed.y}; Z:${parsed.z}; Temp:${parsed.temp}°C`,
             });
             if (this.historique.length > 10) this.historique.pop();
 
