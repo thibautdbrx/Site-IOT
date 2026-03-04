@@ -1,111 +1,220 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Contrôle & Monitoring IoT</title>
     <script src="vue.js"></script>
     <script src="/socket.io/socket.io.js"></script>
 
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #e5e7eb; padding: 20px; color: #1f2937; }
-        .container { max-width: 800px; margin: 0 auto; }
-        h1 { text-align: center; color: #1e40af; margin-bottom: 30px; }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #e5e7eb;
+        padding: 20px;
+        color: #1f2937;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      h1 {
+        text-align: center;
+        color: #1e40af;
+        margin-bottom: 30px;
+      }
 
-        /* Grille pour séparer Valeurs et Boutons */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      /* Grille pour séparer Valeurs et Boutons */
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
 
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .card-title { font-weight: bold; font-size: 0.9rem; color: #6b7280; text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid #f3f4f6; pb: 5px; }
+      .card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .card-title {
+        font-weight: bold;
+        font-size: 0.9rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #f3f4f6;
+        pb: 5px;
+      }
 
-        /* Style des valeurs */
-        .valeur-box { text-align: center; padding: 20px 0; }
-        .valeur-chiffre { font-size: 3.5rem; font-weight: bold; color: #4f46e5; font-family: monospace; }
-        .valeur-unite { font-size: 1rem; color: #9ca3af; }
+      /* Style des valeurs */
+      .valeur-box {
+        text-align: center;
+        padding: 20px 0;
+      }
+      .valeur-chiffre {
+        font-size: 3.5rem;
+        font-weight: bold;
+        color: #4f46e5;
+        font-family: monospace;
+      }
+      .valeur-unite {
+        font-size: 1rem;
+        color: #9ca3af;
+      }
 
-        /* Style des boutons */
-        .btn-group { display: flex; flex-direction: column; gap: 10px; }
-        button { border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: opacity 0.2s; }
-        button:active { opacity: 0.7; }
-        .btn-on { background: #10b981; color: white; }
-        .btn-off { background: #ef4444; color: white; }
+      /* Style des boutons */
+      .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      button {
+        border: none;
+        padding: 15px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: opacity 0.2s;
+      }
+      button:active {
+        opacity: 0.7;
+      }
+      .btn-on {
+        background: #10b981;
+        color: white;
+      }
+      .btn-off {
+        background: #ef4444;
+        color: white;
+      }
 
-        /* Historique */
-        .historique { margin-top: 20px; max-height: 200px; overflow-y: auto; font-size: 0.85rem; }
-        .hist-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #f3f4f6; }
-        .hist-date { color: #9ca3af; }
+      /* Historique */
+      .historique {
+        margin-top: 20px;
+        max-height: 200px;
+        overflow-y: auto;
+        font-size: 0.85rem;
+      }
+      .hist-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        border-bottom: 1px solid #f3f4f6;
+      }
+      .hist-date {
+        color: #9ca3af;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <div id="app" class="container">
+      <h1>Dashboard RockPi IoT</h1>
 
-<div id="app" class="container">
-    <h1>Dashboard RockPi IoT</h1>
-
-    <div class="grid">
+      <div class="grid">
         <div class="card">
-            <div class="card-title">Capteur en direct (topic: iot/data)</div>
-            <div class="valeur-box">
-                <div class="valeur-chiffre">{{ derniereValeur }}</div>
-                <div class="valeur-unite">Dernière mise à jour : {{ derniereHeure }}</div>
+          <div class="card-title">Capteur en direct (topic: iot/data)</div>
+          <div class="valeur-box">
+            <div class="valeur-chiffre">
+              X: {{ gyro.x }}<br />
+              Y: {{ gyro.y }}<br />
+              Z: {{ gyro.z }}
             </div>
+            <div class="valeur-unite">
+              Température : {{ gyro.temp }} °C<br />
+              Dernière mise à jour : {{ derniereHeure }}
+            </div>
+          </div>
 
-            <div class="historique">
-                <div v-for="(msg, index) in historique" :key="index" class="hist-item">
-                    <span class="hist-date">{{ msg.date }}</span>
-                    <span style="font-weight: bold;">{{ msg.val }}</span>
-                </div>
+          <div class="historique">
+            <div
+              v-for="(msg, index) in historique"
+              :key="index"
+              class="hist-item"
+            >
+              <span class="hist-date">{{ msg.date }}</span>
+              <span style="font-weight: bold">{{ msg.val }}</span>
             </div>
+          </div>
         </div>
 
         <div class="card">
-            <div class="card-title">Actionneur (topic: light)</div>
-            <p style="font-size: 0.8rem; margin-bottom: 20px;">Cliquez pour envoyer 0 ou 1 sur le broker Mosquitto.</p>
+          <div class="card-title">Actionneur (topic: light)</div>
+          <p style="font-size: 0.8rem; margin-bottom: 20px">
+            Cliquez pour envoyer 0 ou 1 sur le broker Mosquitto.
+          </p>
 
-            <div class="btn-group">
-                <button class="btn-on" @click="envoyerCommande(1)">ALLUMER (1)</button>
-                <button class="btn-off" @click="envoyerCommande(0)">ÉTEINDRE (0)</button>
-            </div>
+          <div class="btn-group">
+            <!-- ALLUMER = 0 -->
+            <button class="btn-on" @click="envoyerCommande(0)">
+              ALLUMER (0)
+            </button>
+            <!-- ÉTEINDRE = 1 -->
+            <button class="btn-off" @click="envoyerCommande(1)">
+              ÉTEINDRE (1)
+            </button>
+          </div>
 
-            <div style="margin-top: 30px; text-align: center;">
-                <div style="font-size: 0.8rem; color: #6b7280;">Statut envoyé :</div>
-                <div style="font-weight: bold; font-size: 1.2rem;" :style="{color: dernierOrdre == 1 ? '#10b981' : '#ef4444'}">
-                    {{ dernierOrdre === null ? 'Aucun' : (dernierOrdre == 1 ? 'ALLUMÉ' : 'ÉTEINT') }}
-                </div>
+          <div style="margin-top: 30px; text-align: center">
+            <div style="font-size: 0.8rem; color: #6b7280">Statut envoyé :</div>
+            <div :style="{color: dernierOrdre === 0 ? '#10b981' : '#ef4444'}">
+              {{ dernierOrdre === null ? 'Aucun' : (dernierOrdre === 0 ?
+              'ALLUMÉ' : 'ÉTEINT') }}
             </div>
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
-<script>
-    const { createApp } = Vue;
-    const socket = io();
+    <script>
+      const { createApp } = Vue;
+      const socket = io();
 
-    createApp({
+      createApp({
         data() {
-            return {
-                derniereValeur: '--',
-                derniereHeure: '--:--:--',
-                historique: [],
-                dernierOrdre: null
-            }
+          return {
+            gyro: { x: 0, y: 0, z: 0, temp: 0 },
+            derniereHeure: "--:--:--",
+            historique: [],
+            dernierOrdre: null, // 0 = allumé, 1 = éteint
+          };
         },
         methods: {
-            envoyerCommande(val) {
-                this.dernierOrdre = val;
-                // Envoie l'info au serveur Node.js via le tuyau Socket.io
-                socket.emit('commande-lumiere', val);
-            }
+          envoyerCommande(val) {
+            // Inverse la logique si nécessaire
+            this.dernierOrdre = val;
+            socket.emit("commande-lumiere", val);
+          },
+          formatHeure() {
+            const now = new Date();
+            return now.toLocaleTimeString();
+          },
         },
         mounted() {
-            // Reçoit les données du serveur Node.js
-            socket.on('donnee-iot', (data) => {
-                this.derniereValeur = data.val;
-                this.derniereHeure = data.date;
-                this.historique.unshift(data);
-                if (this.historique.length > 10) this.historique.pop();
-            });
-        }
-    }).mount('#app');
-</script>
+          socket.on("donnee-iot", (data) => {
+            // Si data.val est un string JSON
+            let parsed =
+              typeof data.val === "string" ? JSON.parse(data.val) : data.val;
 
-</body>
+            // Mettre à jour le gyro
+            this.gyro = parsed;
+            this.derniereHeure = this.formatHeure();
+
+            // Historique propre
+            this.historique.unshift({
+              date: this.derniereHeure,
+              val: `X:${parsed.x} Y:${parsed.y} Z:${parsed.z} Temp:${parsed.temp}°C`,
+            });
+            if (this.historique.length > 10) this.historique.pop();
+
+            // Si le JSON contient un champ light
+            if (parsed.light !== undefined) {
+              // 0 = allumé, 1 = éteint
+              this.dernierOrdre = parsed.light === 0 ? 0 : 1;
+            }
+          });
+        },
+      }).mount("#app");
+    </script>
+  </body>
 </html>
