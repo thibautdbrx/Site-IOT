@@ -2,38 +2,75 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Mon Dashboard IoT - Local</title>
+    <title>Contrôle & Monitoring IoT</title>
     <script src="vue.js"></script>
     <script src="/socket.io/socket.io.js"></script>
 
     <style>
-        /* Petit style simple pour remplacer Tailwind sans internet */
-        body { font-family: sans-serif; background: #f3f4f6; padding: 2rem; color: #374151; }
-        .container { max-width: 600px; margin: 0 auto; }
-        .card { background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 1.5rem; text-align: center; }
-        h1 { color: #2563eb; text-align: center; }
-        .valeur { font-size: 4rem; font-family: monospace; color: #6366f1; margin: 10px 0; }
-        .historique { text-align: left; }
-        .item { display: flex; justify-content: space-between; border-bottom: 1px solid #e5e7eb; padding: 5px 0; }
-        .date { font-style: italic; color: #6b7280; font-size: 0.8rem; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #e5e7eb; padding: 20px; color: #1f2937; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { text-align: center; color: #1e40af; margin-bottom: 30px; }
+
+        /* Grille pour séparer Valeurs et Boutons */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .card-title { font-weight: bold; font-size: 0.9rem; color: #6b7280; text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid #f3f4f6; pb: 5px; }
+
+        /* Style des valeurs */
+        .valeur-box { text-align: center; padding: 20px 0; }
+        .valeur-chiffre { font-size: 3.5rem; font-weight: bold; color: #4f46e5; font-family: monospace; }
+        .valeur-unite { font-size: 1rem; color: #9ca3af; }
+
+        /* Style des boutons */
+        .btn-group { display: flex; flex-direction: column; gap: 10px; }
+        button { border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: opacity 0.2s; }
+        button:active { opacity: 0.7; }
+        .btn-on { background: #10b981; color: white; }
+        .btn-off { background: #ef4444; color: white; }
+
+        /* Historique */
+        .historique { margin-top: 20px; max-height: 200px; overflow-y: auto; font-size: 0.85rem; }
+        .hist-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #f3f4f6; }
+        .hist-date { color: #9ca3af; }
     </style>
 </head>
 <body>
 
 <div id="app" class="container">
-    <h1>📡 Données Mosquitto</h1>
+    <h1>Dashboard RockPi IoT</h1>
 
-    <div class="card">
-        <p style="text-transform: uppercase; font-size: 0.8rem; font-weight: bold; color: #6b7280;">Dernière valeur</p>
-        <div class="valeur">{{ derniereValeur }}</div>
-        <p style="font-size: 0.7rem; color: #9ca3af;">Reçu à : {{ derniereHeure }}</p>
-    </div>
+    <div class="grid">
+        <div class="card">
+            <div class="card-title">Capteur en direct (topic: iot/data)</div>
+            <div class="valeur-box">
+                <div class="valeur-chiffre">{{ derniereValeur }}</div>
+                <div class="valeur-unite">Dernière mise à jour : {{ derniereHeure }}</div>
+            </div>
 
-    <div class="card historique">
-        <h2 style="font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #ccc;">Historique</h2>
-        <div v-for="(msg, index) in historique" :key="index" class="item">
-            <span class="date">{{ msg.date }}</span>
-            <span style="font-weight: bold; color: #3b82f6;">{{ msg.val }}</span>
+            <div class="historique">
+                <div v-for="(msg, index) in historique" :key="index" class="hist-item">
+                    <span class="hist-date">{{ msg.date }}</span>
+                    <span style="font-weight: bold;">{{ msg.val }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Actionneur (topic: light)</div>
+            <p style="font-size: 0.8rem; margin-bottom: 20px;">Cliquez pour envoyer 0 ou 1 sur le broker Mosquitto.</p>
+
+            <div class="btn-group">
+                <button class="btn-on" @click="envoyerCommande(1)">ALLUMER (1)</button>
+                <button class="btn-off" @click="envoyerCommande(0)">ÉTEINDRE (0)</button>
+            </div>
+
+            <div style="margin-top: 30px; text-align: center;">
+                <div style="font-size: 0.8rem; color: #6b7280;">Statut envoyé :</div>
+                <div style="font-weight: bold; font-size: 1.2rem;" :style="{color: dernierOrdre == 1 ? '#10b981' : '#ef4444'}">
+                    {{ dernierOrdre === null ? 'Aucun' : (dernierOrdre == 1 ? 'ALLUMÉ' : 'ÉTEINT') }}
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -47,10 +84,19 @@
             return {
                 derniereValeur: '--',
                 derniereHeure: '--:--:--',
-                historique: []
+                historique: [],
+                dernierOrdre: null
+            }
+        },
+        methods: {
+            envoyerCommande(val) {
+                this.dernierOrdre = val;
+                // Envoie l'info au serveur Node.js via le tuyau Socket.io
+                socket.emit('commande-lumiere', val);
             }
         },
         mounted() {
+            // Reçoit les données du serveur Node.js
             socket.on('donnee-iot', (data) => {
                 this.derniereValeur = data.val;
                 this.derniereHeure = data.date;
@@ -60,5 +106,6 @@
         }
     }).mount('#app');
 </script>
+
 </body>
 </html>

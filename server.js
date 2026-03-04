@@ -14,6 +14,17 @@ mqttClient.on('connect', () => {
     mqttClient.subscribe('gyro_data');
 });
 
+io.on('connection', (socket) => {
+    console.log('Un utilisateur est connecté au dashboard');
+
+    socket.on('commande-lumiere', (etat) => {
+        console.log("Envoi de l'ordre MQTT :", etat);
+
+
+        mqttClient.publish('light', etat.toString());
+    });
+});
+
 mqttClient.on('message', (topic, message) => {
     const data = message.toString();
     console.log(`Donnée reçue sur ${topic}: ${data}`);
