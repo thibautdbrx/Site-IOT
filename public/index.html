@@ -126,23 +126,7 @@
             </div>
           </div>
 
-          <div style="text-align: center; margin-bottom: 10px">
-            <button
-              @click="showHistorique = !showHistorique"
-              style="
-                padding: 8px 15px;
-                border-radius: 6px;
-                background: #3b82f6;
-                color: white;
-                border: none;
-                cursor: pointer;
-              "
-            >
-              {{ showHistorique ? 'Cacher l\'historique' : 'Afficher
-              l\'historique' }}
-            </button>
-          </div>
-          <div class="historique" v-if="showHistorique">
+          <div class="historique">
             <div
               v-for="(msg, index) in historique"
               :key="index"
@@ -193,7 +177,6 @@
             derniereHeure: "--:--:--",
             historique: [],
             dernierOrdre: null, // 0 = allumé, 1 = éteint
-            showHistorique: true,
           };
         },
         methods: {
