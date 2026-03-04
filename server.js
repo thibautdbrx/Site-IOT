@@ -7,7 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const mqttClient = mqtt.connect('mqtt://100.64.177.74:1880');
+const mqttClient = mqtt.connect('mqtt://100.64.177.74:1883');
 
 mqttClient.on('connect', () => {
     console.log('Connecté à Mosquitto');
